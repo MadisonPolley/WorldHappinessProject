@@ -1,0 +1,139 @@
+---
+title: "Milestone 3"
+author: "Madi Polley"
+date: "4/13/2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(dplyr)
+library(tidyverse)
+library(viridis)
+library(ggrepel)
+
+```
+
+
+# Dealing with data
+
+```{r}
+# reading in the data
+data = read.csv("WorldHappinessData.csv")
+
+
+# Making the data longer
+data_longer <- data  %>%
+  pivot_longer(c(`GDP.per.capita`, `Social.support`,`Healthy.life.expectancy`, `Freedom.to.make.life.choices`, `Perceptions.of.corruption`, `Generosity`),
+               names_to = "Variable", values_to = "Value")
+
+
+
+```
+
+
+# Creating a graph for 2015
+
+```{r fig.width=12, fig.height=12}
+
+#  sorting the data in descending score order and adding a group variable which sorts all the data into top 10, top 20, top 30... etc
+dataa = data_longer  %>%
+  filter(year == 2015) %>%
+  arrange(desc(Score)) %>%
+  mutate(group = 10*(Overall.rank%/%10 + as.logical(Overall.rank%%10)))
+
+
+# Finding the number of variables that we will be using in our bar graph and adding in blank bars between ranking groups
+spaces=2
+nObsType <- nlevels(as.factor(dataa$Variable))
+to_add = data.frame( matrix(data=0, nrow=spaces*length(unique(dataa$group))*nObsType, ncol=ncol(dataa)) )
+colnames(to_add) = colnames(dataa)
+to_add$group=rep(unique(dataa$group), each=spaces*nObsType )
+to_add$Variable = NA
+dataa=rbind(dataa, to_add)
+dataa=dataa %>% arrange(group, Overall.rank)
+dataa$id=rep( seq(1, nrow(dataa)/nObsType) , each=nObsType)
+
+
+
+# Creating data for labeling use
+label_data <- dataa  %>%
+  group_by(id, Country.or.region) %>% 
+  summarize(tot=sum(Value))
+number_of_bar <- nrow(label_data)
+angle <- 90 - 360 * (label_data$id-0.5) /number_of_bar 
+label_data$hjust <- ifelse( angle < -90, 1, 0)
+label_data$angle <- ifelse(angle < -90, angle+180, angle)
+
+# Creating the graph --- labels in a big circle
+ggplot(dataa) +
+  geom_bar(aes(x=as.factor(id), y=Value*10, fill = Variable), stat="identity") +
+  scale_fill_manual(values = viridis(6, direction = -1, option = "plasma"), breaks=c("Social.support", "Perceptions.of.corruption", "Healthy.life.expectancy", "Generosity", "GDP.per.capita", "Freedom.to.make.life.choices")) +
+  ylim(-20, 75) +
+  theme_minimal() +
+  theme(
+    axis.text = element_blank(),
+    axis.title = element_blank(),
+    panel.grid = element_blank(),
+    plot.margin = unit(rep(-2,4), "cm")
+  ) +
+  coord_polar(start=0) +
+  geom_text(data=label_data, aes(x=as.factor(id), y=(max(tot)*10)+2, label=Country.or.region, hjust=hjust), color="black", fontface="bold", size=4, angle=label_data$angle, inherit.aes = F) +
+  ggtitle("The Importance of Each Contributing Category \nAmong Countries By Overall Happiness Rank in 2015") +
+  theme(plot.title = element_text(hjust = 0.5, size = 20))
+
+
+```
+
+# Creating a graph for 2019
+
+```{r fig.width=12, fig.height=12}
+
+#  sorting the data in descending score order and adding a group variable which sorts all the data into top 10, top 20, top 30... etc
+dataa = data_longer  %>%
+  filter(year == 2019) %>%
+  arrange(desc(Score)) %>%
+  mutate(group = 10*(Overall.rank%/%10 + as.logical(Overall.rank%%10)))
+
+# Finding the number of variables that we will be using in our bar graph and adding in blank bars between ranking groups
+spaces=2
+nObsType <- nlevels(as.factor(dataa$Variable))
+to_add = data.frame( matrix(data=0, nrow=spaces*length(unique(dataa$group))*nObsType, ncol=ncol(dataa)) )
+colnames(to_add) = colnames(dataa)
+to_add$group=rep(unique(dataa$group), each=spaces*nObsType )
+to_add$Variable = NA
+dataa=rbind(dataa, to_add)
+dataa=dataa %>% arrange(group, Overall.rank)
+dataa$id=rep( seq(1, nrow(dataa)/nObsType) , each=nObsType)
+
+
+
+# Creating data for labeling use
+label_data <- dataa  %>%
+  group_by(id, Country.or.region) %>% 
+  summarize(tot=sum(Value))
+number_of_bar <- nrow(label_data)
+angle <- 90 - 360 * (label_data$id-0.5) /number_of_bar 
+label_data$hjust <- ifelse( angle < -90, 1, 0)
+label_data$angle <- ifelse(angle < -90, angle+180, angle)
+
+# Creating the graph --- labels in a big circle
+ggplot(dataa) +
+  geom_bar(aes(x=as.factor(id), y=Value*10, fill = Variable), stat="identity") +
+  scale_fill_manual(values = viridis(6, direction = -1, option = "plasma"), breaks=c("Social.support", "Perceptions.of.corruption", "Healthy.life.expectancy", "Generosity", "GDP.per.capita", "Freedom.to.make.life.choices"))+
+  ylim(-20, 75) +
+  theme_minimal() +
+  theme(
+    axis.text = element_blank(),
+    axis.title = element_blank(),
+    panel.grid = element_blank(),
+    plot.margin = unit(rep(-2,4), "cm")
+  ) +
+  coord_polar(start=0) +
+  geom_text(data=label_data, aes(x=as.factor(id), y=(max(tot)*10)+2, label=Country.or.region, hjust=hjust), color="black", fontface="bold", size=4, angle=label_data$angle, inherit.aes = F)+
+  ggtitle("The Importance of Each Contributing Category \nAmong Countries By Overall Happiness Rank in 2019") +
+  theme(plot.title = element_text(hjust = 0.5, size = 20))
+
+```
+
+
