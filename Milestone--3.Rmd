@@ -1,0 +1,553 @@
+---
+title: "Milestone 3"
+author: "Micah Jona, Evan Laskowski, Rishav Palchowdhury, Madison Polley, Anushka Prakash"
+date: "4/13/2021"
+output:
+  html_document:
+    df_print: paged
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+
+knitr::opts_chunk$set(echo = TRUE)
+
+library(dplyr)
+library(tidyverse)
+library(viridis)
+library(ggrepel)
+library(tidyverse)
+library(reshape2)
+library(plotly)
+library(gganimate)
+library(rgdal)
+library(RColorBrewer)
+library(tidyr)
+library(ggplot2)
+
+```
+
+# Project Description
+
+## We all know 2020 and 2021 have been hard years for everyone around the world. Being in a global pandemic and away from our loved ones has taken a toll on everyone young and old. Because of this, we aim to find what factors truly contribute to human happiness. To do this, we will use the United Nations’ Sustainable Solution Development Network Survey of the state of global happiness.
+
+#### Sustainable Development Solutions Network (2017, February). World Happiness Report, Version 2. Retrieved February 1, 2021 from https://www.kaggle.com/unsdsn/world-happiness.
+
+# Data Description
+
+## The Global Happiness report consists of 5 datasets comprised of 155 countries, which are ranked based on their self-reported sense of wellbeing and happiness. They use six key categories to explain the variation in happiness scores which are per capita GDP, sense of trust in business and government, expectation of good health, personal network of social support, perception of freedom, and giving and generosity. In the survey they ask participants to rate their own lives based on a scale of 1 to 10.In this data, the happiness category values are how heavily researchers percieved the categories to be for each given country's happiness.
+
+### Original 5 Datasets
+#### https://github.com/MadisonPolley/WorldHappinessProject/2015.csv
+#### https://github.com/MadisonPolley/WorldHappinessProject/2016.csv
+#### https://github.com/MadisonPolley/WorldHappinessProject/2017.csv
+#### https://github.com/MadisonPolley/WorldHappinessProject/2018.csv
+#### https://github.com/MadisonPolley/WorldHappinessProject/2019.csv
+
+### Processed Dataset
+#### https://github.com/MadisonPolley/WorldHappinessProject/WorldHappinessData.csv
+
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+# reading in the data
+data = read.csv("WorldHappinessData.csv")
+
+# creating long data for the preliminary graphs as plot 3
+
+data_longer <- data  %>%
+  pivot_longer(c(`GDP.per.capita`, `Social.support`,`Healthy.life.expectancy`, `Freedom.to.make.life.choices`, `Perceptions.of.corruption`, `Generosity`),
+               names_to = "Variable", values_to = "Value")
+
+```
+
+# Preliminary Data Visualizations
+
+## How To Read The Graphs Below
+
+### Our preliminary plots visualize the relationship between Happiness Score and 6 variables. Each graphical mark represents a country.  Using ggplotly and a slider, we are able to see how the relationship with the 6 variables and happiness Score change between 2015 and 2019. If you hover over a point, the tooltip displays the country’s name, the Happiness Score, the Happiness Rank and the Variable’s value. You are also Able to zoom in and out of a graph to further explore relationships between the countries!
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+###Happiness Score and Healthy Life Expectancy
+
+
+plot1 <- data %>%
+  mutate(text = paste("Country: ", Country.or.region, "\nHappiness Score: ", `Score`, "\nHappiness Rank: ", `Overall.rank`, "\nHealthy Life expectancy: ", `Healthy.life.expectancy`, sep=""))
+
+fit1<- lm(Score ~ Healthy.life.expectancy, data = plot1)
+
+fig1 <- plot1 %>%
+  plot_ly(
+    x = ~Healthy.life.expectancy, 
+    y = ~Score, 
+    frame = ~year, 
+    text = ~text, 
+    hoverinfo = "text",
+    type = 'scatter',
+    mode = 'markers'
+    #marker = list(color = "rgba(255, 0, 0, 0.6)")
+  ) %>% 
+  add_lines(x = ~Healthy.life.expectancy, y = fitted(fit1),
+                line = list(color = "rgba(20, 20, 20, 20)")
+)
+
+
+
+fig1
+
+
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+###Happiness Score and GDP
+
+plot2 <- data %>%
+  mutate(text = paste("Country: ", Country.or.region, "\nHappiness Score: ", `Score`, "\nHappiness Rank: ", `Overall.rank`, "\nGDP per capita: ", `GDP.per.capita`, sep=""))
+ 
+fit2<- lm(Score ~ GDP.per.capita, data = plot2)
+
+
+fig2 <- plot2 %>%
+  plot_ly(
+    x = ~GDP.per.capita, 
+    y = ~Score, 
+    frame = ~year, 
+    text = ~text, 
+    hoverinfo = "text",
+    type = 'scatter',
+    mode = 'markers'
+    #marker = list(color = "rgba(255, 0, 0, 0.6)")
+  ) %>% 
+  add_lines(x = ~GDP.per.capita, y = fitted(fit2),
+                line = list(color = "rgba(20, 20, 20, 20)")
+)
+
+
+
+fig2
+
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+###Happiness Score and Social Support
+
+plot3 <- data %>%
+  mutate(text = paste("Country: ", Country.or.region, "\nHappiness Score: ", `Score`, "\nHappiness Rank: ", `Overall.rank`, "\nSocial Support Score: ", `Social.support`, sep=""))
+ 
+fit3<- lm(Score ~ Social.support, data = plot3)
+
+
+fig3 <- plot3 %>%
+  plot_ly(
+    x = ~Social.support, 
+    y = ~Score, 
+    frame = ~year, 
+    text = ~text, 
+    hoverinfo = "text",
+    type = 'scatter',
+    mode = 'markers'
+    #marker = list(color = "rgba(255, 0, 0, 0.6)")
+  ) %>% 
+  add_lines(x = ~Social.support, y = fitted(fit3),
+                line = list(color = "rgba(20, 20, 20, 20)")
+)
+
+
+
+fig3
+
+```
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+###Happiness Score and Freedom.to.make.life.choices
+
+plot4 <- data %>%
+  mutate(text = paste("Country: ", Country.or.region, "\nHappiness Score: ", `Score`, "\nHappiness Rank: ", `Overall.rank`, "\nFreedom to make life choices: ", `Freedom.to.make.life.choices`, sep=""))
+ 
+fit4<- lm(Score ~ Freedom.to.make.life.choices, data = plot4)
+
+
+fig4 <- plot4 %>%
+  plot_ly(
+    x = ~Freedom.to.make.life.choices, 
+    y = ~Score, 
+    frame = ~year, 
+    text = ~text, 
+    hoverinfo = "text",
+    type = 'scatter',
+    mode = 'markers'
+    #marker = list(color = "rgba(255, 0, 0, 0.6)")
+  ) %>% 
+  add_lines(x = ~Freedom.to.make.life.choices, y = fitted(fit4),
+                line = list(color = "rgba(20, 20, 20, 20)")
+)
+
+
+
+fig4
+
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+###Happiness Score and Freedom.to.make.life.choices
+
+plot5 <- data %>%
+  mutate(text = paste("Country: ", Country.or.region, "\nHappiness Score: ", `Score`, "\nHappiness Rank: ", `Overall.rank`, "\nPerceptions of corruption: ", `Perceptions.of.corruption`, sep=""))
+ 
+fit5<- lm(Score ~ Perceptions.of.corruption, data = plot2)
+
+
+fig5 <- plot5 %>%
+  plot_ly(
+    x = ~Perceptions.of.corruption, 
+    y = ~Score, 
+    frame = ~year, 
+    text = ~text, 
+    hoverinfo = "text",
+    type = 'scatter',
+    mode = 'markers'
+    #marker = list(color = "rgba(255, 0, 0, 0.6)")
+  ) %>% 
+  add_lines(x = ~Perceptions.of.corruption, y = fitted(fit5),
+                line = list(color = "rgba(20, 20, 20, 20)")
+)
+
+
+
+fig5
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+plot6 <- data %>%
+  mutate(text = paste("Country: ", Country.or.region, "\nHappiness Score: ", `Score`, "\nHappiness Rank: ", `Overall.rank`, "\nGenerosity: ", `Generosity`, sep=""))
+ 
+fit6<- lm(Score ~ Generosity, data = plot6)
+
+
+fig6 <- plot6 %>%
+  plot_ly(
+    x = ~Generosity, 
+    y = ~Score, 
+    frame = ~year, 
+    text = ~text, 
+    hoverinfo = "text",
+    type = 'scatter',
+    mode = 'markers'
+    #marker = list(color = "rgba(255, 0, 0, 0.6)")
+  ) %>% 
+  add_lines(x = ~Generosity, y = fitted(fit6),
+                line = list(color = "rgba(20, 20, 20, 20)")
+)
+
+
+
+fig2
+```
+
+## How To Read The Graph Below
+
+### In this graph, you are able to see the range of Happiness Scores for the world between 2015 and 2019. This gives the user an overall trend of how world happiness changed over time but also compare it to neighbouring years.
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+plot7 <- data_longer %>%
+  mutate(text = paste("Year: ", year, "\nHappiness Score: ", `Score`, sep=""))
+
+  
+fig7 <-plot7 %>% 
+plot_ly(y = ~Score, color = ~factor(year), type = "box")
+fig7
+
+
+```
+
+# Creating Descriptive Plots
+
+## Plot 1
+
+### How To Read Plot 1
+
+#### The plot of the world map gives the viewer the ability to compare the whole world's happiness at once by using a slider to select which year of data to look at and hovering over each country to find the selected year, country name and happiness score.  We were able to achieve this plot by using ggplotly which gives the user the ability to  interact with the map.  The years available are 2015-2019 for each country on the map.  The user can zoom in and out and also has the ability to click and drag on the map and the globe will rotate in that direction.
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+df <- read.csv("https://raw.githubusercontent.com/plotly/datasets/master/2014_world_gdp_with_codes.csv")
+
+data = read.csv("WorldHappinessData.csv")
+
+
+
+scores_df <- data %>% 
+  right_join(df,by = c("Country.or.region" = "COUNTRY")) %>% 
+  select(Country.or.region, Score, year, Overall.rank, CODE) %>% 
+  mutate(hover = paste0("Year: ", year, "\nCountry: ", Country.or.region, "\nHappiness Score: ", Score, "\nRank: ", Overall.rank))
+
+
+g <- list(projection = list(type = 'natural earth'))
+vmax <- max(scores_df$Score, na.rm=T)
+
+
+fig <-  plot_geo(scores_df, type='choropleth', frame = ~year) %>% 
+  add_trace( 
+    locations= ~CODE,
+    z= ~Score,
+    zmin = 3,
+    zmax = vmax,
+    color = ~Score,
+    colorscale = 'Viridis',
+    text = ~hover,
+    hoverinfo = 'text'
+  ) %>% 
+  layout(geo = g) %>% 
+  config(displayModeBar = FALSE)
+
+fig
+
+
+
+
+```
+
+
+## Plot 2
+
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+cor_data_2015 <- data %>%
+  filter(year == 2015) %>%
+  dplyr::select(-c(Country.or.region, year, count))
+
+cormat_2015 <- round(cor(cor_data_2015), 2)
+
+melted_cormat_2015 <- melt(cormat_2015)
+
+melted_cormat_2015$year <- 2015
+
+cor_data_2016 <- data %>%
+  filter(year == 2016) %>%
+  dplyr::select(-c(Country.or.region, year, count))
+
+cormat_2016 <- round(cor(cor_data_2016), 2)
+
+melted_cormat_2016 <- melt(cormat_2016)
+
+melted_cormat_2016$year <- 2016
+
+cor_data_2017 <- data %>%
+  filter(year == 2017) %>%
+  dplyr::select(-c(Country.or.region, year, count))
+
+cormat_2017 <- round(cor(cor_data_2017), 2)
+
+melted_cormat_2017 <- melt(cormat_2017)
+
+melted_cormat_2017$year <- 2017
+
+cor_data_2018 <- data %>%
+  filter(year == 2018) %>%
+  dplyr::select(-c(Country.or.region, year, count))
+
+cormat_2018 <- round(cor(cor_data_2018), 2)
+
+melted_cormat_2018 <- melt(cormat_2018)
+
+melted_cormat_2018$year <- 2018
+
+cor_data_2019 <- data %>%
+  filter(year == 2019) %>%
+  dplyr::select(-c(Country.or.region, year, count))
+
+cormat_2019 <- round(cor(cor_data_2019), 2)
+
+melted_cormat_2019 <- melt(cormat_2019)
+
+melted_cormat_2019$year <- 2019
+
+all_melted_cormat <- rbind(melted_cormat_2015, melted_cormat_2016, melted_cormat_2017, melted_cormat_2018, melted_cormat_2019)
+```
+
+### How To Read Plot 2
+#### Each square represents the correlation between the variable on the x-axis and on the y-axis. Correlation shows the linear relationship between two variables. A correlation value closer to 1 or -1 indicates a very strong linear relationship, either positively or negatively, respectively, between the two variables. A correlation value closer to 0 indicates a negligible linear relationship. In this graph, red represents a positive correlation, white a 0 correlation, and blue a negative correlation. The user is able to cycle through all five years of the dataset to further explore how the correlations change over time. Also, the user can hover over a particular tile to get the exact correlation value instead of it being based off of the color.
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+p <- ggplot(data = all_melted_cormat, aes(x=Var1, y=Var2, fill=value)) + 
+  geom_tile(aes(frame = year)) + 
+  scale_fill_gradient2(low = "blue", high = "red", midpoint  = 0, mid = "white") + 
+  labs(fill = "Correlation", x = "", y = "") + 
+  theme_bw() +   theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank()) + 
+  scale_x_discrete(guide = guide_axis(angle = 90))
+
+fig <- ggplotly(p)
+
+fig
+```
+
+
+## Plot 3
+
+
+### How To Read Plot 3
+
+#### Plot 3 shows the average score of each happiness factor for each country-- first for 2015, then for 2019. These scores are stacked on top of one another in order to compare what each country values most in reference to their happiness levels. The graphs are ordered clockwise by the overall happiness score of the countries with the highest ranking country at the top of the circle. The graphs were split into groups of 10 in order for easier identification of country name.
+
+```{r fig.width=10, fig.height=10, warning = FALSE, echo=FALSE, message=FALSE}
+
+#  sorting the data in descending score order and adding a group variable which sorts all the data into top 10, top 20, top 30... etc
+dataa = data_longer  %>%
+  filter(year == 2015) %>%
+  arrange(desc(Score)) %>%
+  mutate(group = 10*(Overall.rank%/%10 + as.logical(Overall.rank%%10))) %>%
+  group_by( Country.or.region) %>%
+  mutate(tot = sum(Value)) %>%
+  group_by(group) %>%
+  mutate(groupmax = max(tot)) %>%
+  ungroup() %>%
+  arrange(desc(Score))
+
+
+
+dataa19 = data_longer  %>%
+  filter(year == 2019) %>%
+  arrange(desc(Score)) %>%
+  mutate(group = 10*(Overall.rank%/%10 + as.logical(Overall.rank%%10)))%>%
+  group_by( Country.or.region) %>%
+  mutate(tot = sum(Value)) %>%
+  group_by(group) %>%
+  mutate(groupmax = max(tot)) %>%
+  ungroup() %>%
+  arrange(desc(Score))
+  
+
+
+# Finding the number of variables that we will be using in our bar graph and adding in blank bars between ranking groups
+spaces=2
+nObsType <- nlevels(as.factor(dataa$Variable))
+to_add = data.frame( matrix(data=0, nrow=spaces*length(unique(dataa$group))*nObsType, ncol=ncol(dataa)) )
+colnames(to_add) = colnames(dataa)
+to_add$group=rep(unique(dataa$group), each=spaces*nObsType )
+to_add$Variable = NA
+to_add$Overall.rank = NA
+dataa=rbind(dataa, to_add)
+dataa= dataa %>% dplyr::arrange(group, Overall.rank)
+dataa$id=rep( seq(1, nrow(dataa)/nObsType) , each=nObsType)
+
+
+spaces=2
+nObsType19 <- nlevels(as.factor(dataa19$Variable))
+to_add19 = data.frame( matrix(data=0, nrow=spaces*length(unique(dataa19$group))*nObsType19, ncol=ncol(dataa19)) )
+colnames(to_add19) = colnames(dataa19)
+to_add19$group=rep(unique(dataa19$group), each=spaces*nObsType19 )
+to_add19$Variable = NA
+to_add19$Overall.rank = NA
+dataa19=rbind(dataa19, to_add19)
+dataa19=dataa19 %>% arrange(group, Overall.rank)
+dataa19$id=rep( seq(1, nrow(dataa19)/nObsType19) , each=nObsType19)
+
+dataa = as.data.frame(dataa)
+dataa19 = as.data.frame(dataa19)
+
+
+# Creating data for labeling use
+label_data <- dataa  %>%
+  group_by(id, Country.or.region) %>% 
+  summarize(groupmax = mean(groupmax))
+number_of_bar <- nrow(label_data)
+angle <- 90 - 360 * (label_data$id-0.5) /number_of_bar 
+label_data$hjust <- ifelse( angle < -90, 1, 0)
+label_data$angle <- ifelse(angle < -90, angle+180, angle)
+
+
+label_data19 <- dataa19  %>%
+  group_by(id, Country.or.region) %>% 
+  summarize(groupmax = mean(groupmax))
+number_of_bar19 <- nrow(label_data19)
+angle19 <- 90 - 360 * (label_data19$id-0.5) /number_of_bar19 
+label_data19$hjust <- ifelse( angle19 < -90, 1, 0)
+label_data19$angle <- ifelse(angle19 < -90, angle19+180, angle19)
+
+# Creating the graphs
+
+
+plot15 = ggplot(dataa) +
+  geom_bar(aes(x=as.factor(id), y=Value*10, fill = Variable), stat="identity") +
+  scale_fill_manual(values = viridis(6, direction = -1, option = "plasma"), breaks=c("Social.support", "Perceptions.of.corruption", "Healthy.life.expectancy", "Generosity", "GDP.per.capita", "Freedom.to.make.life.choices")) +
+  ylim(-20, 65) +
+  theme_minimal() +
+  theme(
+    axis.text = element_blank(),
+    axis.title = element_blank(),
+    panel.grid = element_blank(),
+    plot.margin = unit(rep(-2,4), "cm")
+  ) +
+  coord_polar(start=0) +
+  geom_text(data=label_data, aes(x=as.factor(id), y=groupmax*10+2, label=Country.or.region, hjust=hjust), color="black", fontface="bold", size=3, angle=label_data$angle, inherit.aes = F) +
+  ggtitle("The Importance of Each Contributing Category \nAmong Countries By Overall Happiness Rank in 2015") +
+  theme(plot.title = element_text(hjust = 0.5, size = 20))
+
+plot19 = ggplot(dataa19) +
+  geom_bar(aes(x=as.factor(id), y=Value*10, fill = Variable), stat="identity") +
+  scale_fill_manual(values = viridis(6, direction = -1, option = "plasma"), breaks=c("Social.support", "Perceptions.of.corruption", "Healthy.life.expectancy", "Generosity", "GDP.per.capita", "Freedom.to.make.life.choices"))+
+  ylim(-20, 65) +
+  theme_minimal() +
+  theme(
+    axis.text = element_blank(),
+    axis.title = element_blank(),
+    panel.grid = element_blank(),
+    plot.margin = unit(rep(-2,4), "cm")
+  ) +
+  coord_polar(start=0) +
+  geom_text(data=label_data19, aes(x=as.factor(id), y=groupmax*10+2, label=Country.or.region, hjust=hjust), color="black", fontface="bold", size=3, angle=label_data19$angle, inherit.aes = F)+
+  ggtitle("The Importance of Each Contributing Category \nAmong Countries By Overall Happiness Rank in 2019") +
+  theme(plot.title = element_text(hjust = 0.5, size = 20))
+
+plot15
+plot19
+
+```
+
+
+## Plot 4
+
+### How To Read Plot 4
+#### The graphs below are the ten countries with the highest happiness score (left) and the ten countries with the lowest happiness score (right). This makes it possible to directly compare the happiness category scores against one another across the extremes of the data. When hovering over the graph, one can see the name of the country, the value of the category, and the score of the category. The graphs can also be zoomed in on for easier comparison of categories, individual bars, and small groups of bars.
+
+```{r, fig.width= 8, echo=FALSE, message=FALSE, warning=FALSE}
+data_longer2 <- data %>%
+  group_by(Country.or.region) %>%
+  summarise(Avg.count = mean(count), 
+            Avg.Score = mean(Score),
+            Avg.Overall.rank = mean(Overall.rank),
+            Avg.GDP.per.capita = mean(GDP.per.capita),
+            Avg.Social.Support = mean(Social.support),
+            Avg.Healthy.life.expectancy = mean(Healthy.life.expectancy),
+            Avg.Freedom.to.make.life.choices= mean(Freedom.to.make.life.choices),
+            Avg.Perceptions.of.corruption = mean(Perceptions.of.corruption),
+            Avg.Generosity = mean(Generosity)) %>%
+  arrange(Avg.Overall.rank)
+
+data_longer3 <- data_longer2 %>% 
+  pivot_longer( c(`Avg.GDP.per.capita`, `Avg.Social.Support`,`Avg.Healthy.life.expectancy`, `Avg.Freedom.to.make.life.choices`, `Avg.Perceptions.of.corruption`, `Avg.Generosity`) , names_to = "Variable", values_to = "Value" )
+
+top10 <- data_longer3[1:100,]
+bottom10 <- tail(data_longer3,n=100)
+df <- bind_rows(top10,bottom10) %>%
+  mutate(name = sort(Avg.Overall.rank))
+
+final= ggplot(df, aes(fill=Variable, y=Value, x=reorder(Country.or.region, Avg.Overall.rank))) + 
+         geom_bar(position="stack", stat="identity") + theme(axis.text.x = element_text(angle = 90), legend.position = "right") +  labs(title = "Score of 10 Happiest and Least Happies Countries", y= "Avg.Score", x="Country")  +
+  scale_fill_brewer(palette = "Accent")
+
+ggplotly(final)
+
+
+```
+
+# Conclusions
+
+## From our last plot, we are able to compare the Average Overall Scores between the 10 Happiest and 10 least Happiest countries from 2015 to 2019. In the 10 Happiest Countries, we can see that variables GDP per Capita, Healthy Life Expectancy, and Social Support contribute towards a significant part of their total Happiness Score. This tells us that the combination of high scores in these 3 variables results in a happier country.  In the 10 least happy countries, we noticed that Social Support was not much lower than the 10 Happiest countries. This leads us to believe that Social Support plays a huge part in the happiness of in all countries, no matter their overall score.Surprisingly, perceptions of corruption did not play a significant role in high or low countries. We thought this would contribute more, especially after recently having a Presidential Election in the United States that many people were upset about.
