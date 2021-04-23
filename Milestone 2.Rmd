@@ -14,7 +14,7 @@ library(tidyverse)
 ```{r}
 #reading in the datasets
 data15 = read.csv("2015.csv")
-data16 = read.csv("2015.csv")
+data16 = read.csv("2016.csv")
 data17 = read.csv("2017.csv")
 data18 = read.csv("2018.csv")
 data19 = read.csv("2019.csv")
